@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User</title>
+</head>
+<body>
+    <h1>Hi, {{ session.user }}!</h1>
+    <form method="POST">
+        <input type="email" name="email" placeholder="Email" value="{{ email }}">
+        <button type="submit">Save</button>
+    </form>
+    <a href="/view">View Users</a> | <a href="/logout">Logout</a>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>
