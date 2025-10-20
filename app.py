@@ -10,7 +10,6 @@ app.permanent_session_lifetime = timedelta(days=5)
 
 # DYNAMIC DB: Postgres on Render, SQLite local
 db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 
 db = SQLAlchemy(app)
 
@@ -79,5 +78,4 @@ def logout():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-
     app.run(debug=True)
