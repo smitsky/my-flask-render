@@ -96,10 +96,16 @@ def logout():
     session.pop("email", None)
     return redirect(url_for("login"))
 
+# app.py (add this block near the end of your file)
+def create_db_tables():
+    """Function to create tables, used by the build command."""
+    with app.app_context():
+        db.create_all()
+        print("Database tables created successfully.")
+
 if __name__ == '__main__':
-	with app.app_context():
-		db.create_all()
 		app.run(debug=True)
 	
+
 
 
