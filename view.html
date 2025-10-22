@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}All Users{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>All Users</h2>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info" role="alert">
+                {% for msg in messages %}
+                    <p class="mb-0">{{msg}}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    {% for value in values %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Name: {{value.name}}</h5>
+                <p class="card-text">Email: {{value.email}}</p>
+                <a href="/delete/{{value.id}}" class="btn btn-danger">DELETE</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
