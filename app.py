@@ -18,70 +18,88 @@ db = SQLAlchemy(app)
 with app.app_context():
     db.create_all()
 
-# User Model
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
-    email = db.Column(db.String(100))
+class users(db.Model):
+	id = db.Column("id", db.Integer, primary_key=True)
+	name = db.Column(db.String(100))
+	email = db.Column(db.String(100))
 
-    def __init__(self, name, email=""):
-        self.name = name
-        self.email = email
+	def __init__(self, name, email):
+		self.name = name
+		self.email = email
 
-# Routes
 @app.route('/')
 def home():
     return render_template("index.html")
 
-@app.route('/login', methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        name = request.form["name"]
-        user = User.query.filter_by(name=name).first()
-        if not user:
-            user = User(name=name)
-            db.session.add(user)
-            db.session.commit()
-        session["user"] = name
-        flash("Login successful!")
-        return redirect(url_for("user"))
-    return render_template("login.html")
-
-@app.route('/user', methods=["GET", "POST"])
-def user():
-    if "user" not in session:
-        flash("Please log in!")
-        return redirect(url_for("login"))
-    if request.method == "POST":
-        email = request.form["email"]
-        user = User.query.filter_by(name=session["user"]).first()
-        user.email = email
-        db.session.commit()
-        flash("Email saved!")
-    return render_template("user.html", email=User.query.filter_by(name=session["user"]).first().email)
-
 @app.route('/view')
 def view():
-    users = User.query.all()
-    return render_template("view.html", users=users)
+	return render_template('view.html', values=users.query.all())
 
-@app.route('/delete/<int:id>')
-def delete(id):
-    user = User.query.get(id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        flash("User deleted!")
-    return redirect(url_for("view"))
+@app.route('/delete/<int:user_id>')
+def delete(user_id):
+	user_to_delete = users.query.get(user_id)
+	if user_to_delete:
+		db.session.delete(user_to_delete)
+		db.session.commit()
+		flash("User deleted Successfully", "success")
+	else:
+		flash("User not found", "error")
+	return redirect(url_for('view'))
+
+@app.route('/login', methods=["POST", "GET"])
+def login():
+	if request.method == "POST":
+		session.permanent = True
+		user = request.form["nm"]
+		session["user"] = user
+
+		found_user = users.query.filter_by(name=user).first()
+		if found_user:
+			session["email"] = found_user.email
+		else:
+			usr = users(user, "")
+			db.session.add(usr)
+			db.session.commit()
+
+		flash("Login Successful!")
+		return redirect(url_for("user"))
+	else:
+		if "user" in session:
+			flash("Already logged in!")
+			return redirect(url_for("user"))
+		return render_template("login.html")
+				
+@app.route('/user', methods=["POST", "GET"])
+def user():
+    email = None
+    if "user" in session:
+        user = session["user"]
+        if request.method == "POST":
+            email = request.form["email"]
+            session["email"] = email
+            found_user = users.query.filter_by(name=user).first()
+            found_user.email = email
+            db.session.commit()
+            flash("Your email as been saved!")
+        else:
+        	if "email" in session:
+        		email = session["email"]
+        return render_template("user.html", email=email)
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("login"))
 
 @app.route('/logout')
 def logout():
+    if "user" in session:
+        user = session["user"]
+        flash(f"You have been logged out, {user}", "info")
     session.pop("user", None)
-    flash("Logged out!")
+    session.pop("email", None)
     return redirect(url_for("login"))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
-
+	with app.app_context():
+		db.create_all()
+		app.run(debug=True)
+	
